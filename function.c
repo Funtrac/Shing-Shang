@@ -1,0 +1,3 @@
+pion * generetable(){
+
+}
