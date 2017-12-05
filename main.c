@@ -10,6 +10,7 @@ typedef struct{
 
 void affichecase(int team, int type){
 	char tabaff[3][5];
+	tabaff[0][0]=' ';
 	tabaff[0][1]='X';
 	tabaff[1][1]='S';
 	tabaff[1][2]='L';
@@ -31,7 +32,7 @@ int affichageplateau(coord * plateau[][10]){
   			testteam=plateau[i][j]->team;
       }
       else{
-        testtype = 1;
+        testtype = 0;
         testteam = 0;
       }
 			affichecase(testteam,testtype) ;
@@ -82,14 +83,14 @@ coord * generetable(coord * plateau[][10], coord * tcase){
       if (j==0) {
         plateau[i][j] = tcase;
       }
-      else if(i==j){
+      else if((3-j)==i){
         plateau[i][j] = tcase+1;
       }
       else if (i==(j-1)) {
-        plateau[i][j] = tcase+2;
+				plateau[i][j] = tcase+3;
       }
       else{
-        plateau[i][j] = tcase+3;
+				plateau[i][j] = tcase+2;
       }
     }
   }
@@ -111,8 +112,8 @@ coord * generetable(coord * plateau[][10], coord * tcase){
     }
   }
   //Triangle 3
-  for (int i = 7; i < 10; i++) {
-    for (int j = 0; j < i-6; j++) {
+  for (int i = 6; i < 10; i++) {
+    for (int j = 0; j < i-5; j++) {
       if (j==0) {
         plateau[i][j] = tcase;
       }
@@ -128,15 +129,15 @@ coord * generetable(coord * plateau[][10], coord * tcase){
     }
   }
   //Triangle 4
-  for (int i = 7; i < 10; i++) {
-    for (int j = 9; j > 8+7-i; j--) {
+  for (int i = 6; i < 10; i++) {
+    for (int j = 9; j > 8+6-i; j--) {
       if (j==9) {
         plateau[i][j] = tcase;
       }
-      else if(i==j){
+      else if(i==(15-j)){
         plateau[i][j] = tcase+5;
       }
-      else if (i==(j-1)) {
+      else if (i==(16-j)) {
         plateau[i][j] = tcase+6;
       }
       else{
