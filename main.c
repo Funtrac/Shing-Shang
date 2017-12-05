@@ -7,7 +7,13 @@ typedef struct{
 } coord ;
 
 
-
+/*tabaff[0][1]='▒';
+tabaff[1][1]='◇';
+tabaff[1][2]='△';
+tabaff[1][3]='○';
+tabaff[2][1]='◆';
+tabaff[2][2]='▲';
+tabaff[2][3]='●';*/
 void affichecase(int team, int type){
 	char tabaff[3][5];
 	tabaff[0][0]=' ';
