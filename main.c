@@ -1,35 +1,41 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <termios.h>
+#include <unistd.h>
 
 typedef struct{
 	int type;
 	int team;
 } coord ;
+typedef struct{
+	int x;
+	int y;
+} selected ;
 
 
-/*tabaff[0][1]='▒';
-tabaff[1][1]='◇';
-tabaff[1][2]='△';
-tabaff[1][3]='○';
-tabaff[2][1]='◆';
-tabaff[2][2]='▲';
-tabaff[2][3]='●';*/
-void affichecase(int team, int type){
-	char tabaff[3][5];
-	tabaff[0][0]=' ';
-	tabaff[0][1]='X';
-	tabaff[1][1]='S';
-	tabaff[1][2]='L';
-	tabaff[1][3]='D';
-  tabaff[1][4]='P';
-	tabaff[2][1]='S';
-	tabaff[2][2]='L';
-	tabaff[2][3]='D';
-  tabaff[2][4]='P';
-	printf("%c ",tabaff[team][type]);
+
+void affichecase(int team, int type,int colored){
+	char * tabaff[3][5];
+	tabaff[0][0]="·";
+	tabaff[0][1]="▒";
+	tabaff[1][1]="◇";
+	tabaff[1][2]="△";
+	tabaff[1][3]="○";
+  tabaff[1][4]="P";
+	tabaff[2][1]="◆";
+	tabaff[2][2]="▲";
+	tabaff[2][3]="●";
+  tabaff[2][4]="P";
+	if (colored) {
+		printf("\x1b[33m%s\x1b[0m ",tabaff[team][type]);
+	}
+	else{
+		printf("%s ",tabaff[team][type]);
+	}
+
 }
 
-int affichageplateau(coord * plateau[][10]){
+int affichageplateau(coord * plateau[][10],int xcolor, int ycolor){
 	int testtype, testteam;
 	for (int i=0; i<10; i++){
 		for (int j=0; j<10; j++){
@@ -41,7 +47,12 @@ int affichageplateau(coord * plateau[][10]){
         testtype = 0;
         testteam = 0;
       }
-			affichecase(testteam,testtype) ;
+			if (i == xcolor && j == ycolor) {
+				affichecase(testteam,testtype,1);
+			}
+			else{
+				affichecase(testteam,testtype,0);
+			}
 		}
     printf("\n");
 	}
@@ -160,7 +171,63 @@ coord * plateau[10][10];
 //Initialisation du tableau de type de cases
 coord * tcase = (coord *) malloc(9*sizeof(coord)); // À EXPLIQUER
 generetable(plateau,tcase);
-affichageplateau(plateau);
+affichageplateau(plateau,0,0);
+
+selected coordselect;
+selected.x = 0;
+selected.y = 0
+
+int c;
+static struct termios oldt, newt;
+
+/*tcgetattr gets the parameters of the current terminal
+STDIN_FILENO will tell tcgetattr that it should write the settings
+of stdin to oldt*/
+tcgetattr( STDIN_FILENO, &oldt);
+/*now the settings will be copied*/
+newt = oldt;
+
+/*ICANON normally takes care that one line at a time will be processed
+that means it will return if it sees a "\n" or an EOF or an EOL*/
+newt.c_lflag &= ~(ICANON);
+
+/*Those new settings will be set to STDIN
+TCSANOW tells tcsetattr to change attributes immediately. */
+tcsetattr( STDIN_FILENO, TCSANOW, &newt);
+
+/*This is your part:
+I choose 'e' to end input. Notice that EOF is also turned off
+in the non-canonical mode*/
+int stop = 0;
+while((c=getchar())!= '&'){
+	if (c == '\033') {
+		if (getchar()) {
+			switch (getchar()) {
+				case 'A':
+					printf("Haut");
+					selected.y -= 1;
+				break;
+				case 'B':
+					printf("Bas");
+					selected.y += 1;
+				break;
+				case 'C':
+					printf("Droite");
+					selected.x += 1;
+				break;
+				case 'D':
+					printf("Gauche");
+					selected.y -= 1;
+				break;
+			}
+		}
+		affichageplateau(plateau,selected.x,selected.y);
+	}
+}
+
+
+/*restore the old settings*/
+tcsetattr( STDIN_FILENO, TCSANOW, &oldt);
 free(tcase);
 return 1;
 }
