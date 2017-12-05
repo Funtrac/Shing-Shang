@@ -1,3 +1,5 @@
+//PAS UPDATE, NE PAS UTILISER TOUT METTRE DANS LE MAIN
+
 coord * generetable(){
   //Initialisation du tableau de pointeurs
   coord * plateau[10][10];
