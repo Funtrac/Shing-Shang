@@ -8,35 +8,40 @@ typedef struct{
 
 
 
-void affichagecase(int team, int type){
-	char tabaff[3][2];
+void affichecase(int team, int type){
+	char tabaff[3][5];
 	tabaff[0][1]='X';
-	tabaff[1][1]='D';
+	tabaff[1][1]='S';
 	tabaff[1][2]='L';
-	tabaff[1][3]='S';
-	tabaff[2][1]='D';
+	tabaff[1][3]='D';
+  tabaff[1][4]='P';
+	tabaff[2][1]='S';
 	tabaff[2][2]='L';
-	tabaff[2][3]='S';
-	printf("%c\n",tabaff[type][team]);
+	tabaff[2][3]='D';
+  tabaff[2][4]='P';
+	printf("%c ",tabaff[team][type]);
 }
 
-int affichageplateau(coord * plateau[][]){
+int affichageplateau(coord * plateau[][10]){
 	int testtype, testteam;
 	for (int i=0; i<10; i++){
 		for (int j=0; j<10; j++){
-			testtype=plateau[i][j]->type;
-			testteam=plateau[i][j]->team;
+      if (plateau[i][j] != NULL) {
+        testtype=plateau[i][j]->type;
+  			testteam=plateau[i][j]->team;
+      }
+      else{
+        testtype = 1;
+        testteam = 0;
+      }
 			affichecase(testteam,testtype) ;
 		}
+    printf("\n");
 	}
 }
 
 
-coord * generetable(){
-  //Initialisation du tableau de pointeurs
-	coord * plateau[10][10];
-	//Initialisation du tableau de type de cases
-  coord * tcase = (int*)malloc(9*sizeof(coord)); // À EXPLIQUER
+coord * generetable(coord * plateau[][10], coord * tcase){
   //Case Inaccessible
   (tcase)->type = 1;
   (tcase)->team = 0;
@@ -139,13 +144,16 @@ coord * generetable(){
       }
     }
   }
-	affichageplateau(plateau)
 }
 
 
 int main(){
-
-generetable(tabaff);
+//Initialisation du tableau de pointeurs
+coord * plateau[10][10];
+//Initialisation du tableau de type de cases
+coord * tcase = (coord *) malloc(9*sizeof(coord)); // À EXPLIQUER
+generetable(plateau,tcase);
+affichageplateau(plateau);
 free(tcase);
 return 1;
 }
