@@ -12,6 +12,41 @@ typedef struct{
 	int y;
 } coord ;
 
+void deplacable(coord coordonnees, coord * autorise[][10], coord * plateau[][10]){
+	int varx,vary,tmpx,tmpy;
+	for (int i=0; i <3 ; i++){
+		for (int j=0; j<3; j++){
+			varx=coordonnees.x-1+i;
+			vary=coordonnees.y-1+i;
+			if (varx<0){
+				varx=0;
+			}
+			if (vary<0){
+				varx=0;
+			}
+			if (plateau[varx][vary]==NULL) {
+				autorise[varx][vary]=1;
+			}
+			else {
+				autorise[varx][vary]=0;
+				difx=varx-coordonnees.x;
+				dify=vary-coordonnees.y;
+				if (plateau[varx+difx][vary+dify]==NULL) {
+					autorise[varx+difx][vary+dify]=1;
+				}
+				else {
+					autorise[varx+difx][vary+dify]=0;
+				}
+			}
+		}
+	}
+}
+
+void deplacement_singe(coord cordonnees,  coord * plateau[][10], coord movefrom, coord moveto){
+	coord * autorise[10][10];
+	deplacable(movefrom, autorise,plateau)
+	printf("")
+}
 void requestmove(pion * plateau[][10],coord * movefrom,coord * moveto){
 	switch (plateau[movefrom->x][movefrom->y]->type) {
 		case 1:
