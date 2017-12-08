@@ -47,20 +47,28 @@ void deplacement_singe(coord cordonnees,  coord * plateau[][10], coord movefrom,
 	deplacable(movefrom, autorise,plateau)
 	printf("")
 }
-void requestmove(pion * plateau[][10],coord * movefrom,coord * moveto){
+int requestmove(pion * plateau[][10],coord * movefrom,coord * moveto){
+	int val = 0;
 	switch (plateau[movefrom->x][movefrom->y]->type) {
 		case 1:
-
+				val = deplacement_singe(plateau,*(movefrom),*(moveto));
 		break;
 		case 2:
-
+				val = deplacement_lion(plateau,*(movefrom),*(moveto));
 		break;
 		case 3:
-
+			val = deplacement_dragon(plateau,*(movefrom),*(moveto));
 		break;
 	}
 	movefrom->x = -1;
 	movefrom->y = -1;
+	return val;
+}
+void nextplayer(int * isp){
+	if (*isp==1)
+		*isp=2;
+	else
+		*isp=1;
 }
 void affichecase(int team, int type,int colored){
 	char * tabaff[3][5];
@@ -296,7 +304,13 @@ static struct termios oldt, newt;
 	}
 	else if(c=='\n'){
 		if (coordselect.x != -1 && coordselect.y != -1) {
-			requestmove(plateau,&coordselect,&focused);
+			val = requestmove(plateau,&coordselect,&focused);
+			if (val == 1) {
+				nextplayer(&isplaying);
+			}
+			else if (!val) {
+				printf("Déplacement impossible !\n");
+			}
 		}
 		else{
 			if (plateau[focused.x][focused.y]!=NULL) {
