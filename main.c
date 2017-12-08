@@ -6,11 +6,11 @@
 typedef struct{
 	int type;
 	int team;
-} coord ;
+} pion ;
 typedef struct{
 	int x;
 	int y;
-} selected ;
+} coord ;
 
 
 
@@ -35,7 +35,7 @@ void affichecase(int team, int type,int colored){
 
 }
 
-int affichageplateau(coord * plateau[][10],int xcolor, int ycolor){
+int affichageplateau(pion * plateau[][10],int xcolor, int ycolor){
 	int testtype, testteam;
 	for (int i=0; i<10; i++){
 		for (int j=0; j<10; j++){
@@ -47,7 +47,7 @@ int affichageplateau(coord * plateau[][10],int xcolor, int ycolor){
         testtype = 0;
         testteam = 0;
       }
-			if (i == xcolor && j == ycolor) {
+			if (j == xcolor && i == ycolor) {
 				affichecase(testteam,testtype,1);
 			}
 			else{
@@ -59,7 +59,7 @@ int affichageplateau(coord * plateau[][10],int xcolor, int ycolor){
 }
 
 
-coord * generetable(coord * plateau[][10], coord * tcase){
+coord * generetable(pion * plateau[][10], pion * tcase){
   //Case Inaccessible
   (tcase)->type = 1;
   (tcase)->team = 0;
@@ -167,15 +167,19 @@ coord * generetable(coord * plateau[][10], coord * tcase){
 
 int main(){
 //Initialisation du tableau de pointeurs
-coord * plateau[10][10];
+pion * plateau[10][10];
 //Initialisation du tableau de type de cases
-coord * tcase = (coord *) malloc(9*sizeof(coord)); // À EXPLIQUER
+pion * tcase = (pion *) malloc(9*sizeof(coord)); // À EXPLIQUER
 generetable(plateau,tcase);
 affichageplateau(plateau,0,0);
 
-selected coordselect;
-selected.x = 0;
-selected.y = 0
+coord coordselect;
+coordselect.x = 0;
+coordselect.y = 0;
+
+coord focused;
+focused.x = 0;
+focused.y = 0;
 
 int c;
 static struct termios oldt, newt;
@@ -200,28 +204,36 @@ I choose 'e' to end input. Notice that EOF is also turned off
 in the non-canonical mode*/
 int stop = 0;
 while((c=getchar())!= '&'){
+	//printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 	if (c == '\033') {
 		if (getchar()) {
 			switch (getchar()) {
 				case 'A':
-					printf("Haut");
-					selected.y -= 1;
+				if (focused.y > 0) {
+					focused.y -= 1;
+				}
 				break;
 				case 'B':
-					printf("Bas");
-					selected.y += 1;
+				if (focused.y < 9) {
+					focused.y += 1;
+				}
 				break;
 				case 'C':
-					printf("Droite");
-					selected.x += 1;
+				if (focused.x < 9) {
+					focused.x += 1;
+				}
 				break;
 				case 'D':
-					printf("Gauche");
-					selected.y -= 1;
+				if (focused.x > 0) {
+					focused.x -= 1;
+				}
 				break;
 			}
 		}
-		affichageplateau(plateau,selected.x,selected.y);
+		affichageplateau(plateau,focused.x,focused.y);
+	}
+	else if(c=='\n'){
+		coordselect = focused;
 	}
 }
 
@@ -229,5 +241,6 @@ while((c=getchar())!= '&'){
 /*restore the old settings*/
 tcsetattr( STDIN_FILENO, TCSANOW, &oldt);
 free(tcase);
+printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 return 1;
 }
