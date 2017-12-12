@@ -11,7 +11,27 @@ typedef struct{
 	int x;
 	int y;
 } coord ;
-
+void clearboard(){
+	printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+}
+void displayintro() {
+	printf("------------------------------------------------------------------------------\n");
+	printf("  ____    _       _                     ____    _                             \n");
+	printf(" / ___|  | |__   (_)  _ __     __ _    / ___|  | |__     __ _   _ __     __ _ \n");
+	printf(" \\___ \\  | '_ \\  | | | '_ \\   / _` |   \\___ \\  | '_ \\   / _` | | '_ \\   / _` |\n");
+	printf("  ___) | | | | | | | | | | | | (_| |    ___) | | | | | | (_| | | | | | | (_| |\n");
+	printf(" |____/  |_| |_| |_| |_| |_|  \\__, |   |____/  |_| |_|  \\__,_| |_| |_|  \\__, |\n");
+	printf("                              |___/                                     |___/ \n");
+	printf("------------------------------------------------------------------------------\n");
+	printf("\n\n");
+	printf("                          DUVAL Lucas - MEURDRAC Téo                          \n");
+	printf("                       2017 - Université Caen Normandie                       \n");
+	printf("\n\n\n\n\n\n");
+	printf("                           ───────────────────────                            \n");
+	printf("                           Press Enter to Continue                            \n");
+	printf("                           ───────────────────────                            \n");
+	printf("\n\n\n\n");
+}
 void deplacable(coord coordonnees, coord * autorise[][10], coord * plateau[][10]){
 	int varx,vary,tmpx,tmpy;
 	for (int i=0; i <3 ; i++){
@@ -232,25 +252,8 @@ coord * generetable(pion * plateau[][10], pion * tcase){
 
 
 int main(){
-//Initialisation du tableau de pointeurs
-pion * plateau[10][10];
-//Initialisation du tableau de type de cases
-pion * tcase = (pion *) malloc(9*sizeof(coord)); // À EXPLIQUER
-generetable(plateau,tcase);
 
-coord coordselect;
-coordselect.x = -1;
-coordselect.y = -1;
-
-coord focused;
-focused.x = 0;
-focused.y = 0;
-
-affichageplateau(plateau,focused,coordselect);
-
-int isplaying = 1;
-
-int c;
+int g,val;
 static struct termios oldt, newt;
 
 /*tcgetattr gets the parameters of the current terminal
@@ -268,17 +271,38 @@ newt.c_lflag &= ~(ICANON);
 TCSANOW tells tcsetattr to change attributes immediately. */
 tcsetattr( STDIN_FILENO, TCSANOW, &newt);
 
-/*This is your part:
-I choose 'e' to end input. Notice that EOF is also turned off
-in the non-canonical mode*/
-int stop = 0;
-while((c=getchar())!= '&'){
-	printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-	//printf("\n");
-	if (c == '\033') {
+clearboard();
+displayintro();
+
+while (getchar()!= '\n') {
+	clearboard();
+	displayintro();
+}
+//Initialisation du tableau de pointeurs
+pion * plateau[10][10];
+//Initialisation du tableau de type de cases
+pion * tcase = (pion *) malloc(9*sizeof(coord)); // À EXPLIQUER
+clearboard();
+generetable(plateau,tcase);
+
+coord coordselect;
+coordselect.x = -1;
+coordselect.y = -1;
+
+coord focused;
+focused.x = 0;
+focused.y = 0;
+
+affichageplateau(plateau,focused,coordselect);
+
+int isplaying = 1;
+
+
+while((g=getchar())!= '&'){
+	clearboard();
+	if (g == '\033') {
 		if (getchar()) {
-			switch (getchar()) {int c;
-static struct termios oldt, newt;
+			switch (getchar()) {
 				case 'A':
 				if (focused.y > 0) {
 					focused.y -= 1;
@@ -302,9 +326,9 @@ static struct termios oldt, newt;
 			}
 		}
 	}
-	else if(c=='\n'){
+	else if(g=='\n'){
 		if (coordselect.x != -1 && coordselect.y != -1) {
-			val = requestmove(plateau,&coordselect,&focused);
+			//val = requestmove(plateau,&coordselect,&focused);
 			if (val == 1) {
 				nextplayer(&isplaying);
 			}
@@ -340,6 +364,6 @@ static struct termios oldt, newt;
 /*restore the old settings*/
 tcsetattr( STDIN_FILENO, TCSANOW, &oldt);
 free(tcase);
-printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+clearboard();
 return 1;
 }
