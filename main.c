@@ -3,6 +3,14 @@
 #include <termios.h>
 #include <unistd.h>
 
+/*
+A faire :
+- Vérifier que le déplacement n'est pas enregistré
+- Check déplacement horizontal bas, semble avoir un bug
+
+*/
+
+
 typedef struct{
 	int type;
 	int team;
@@ -59,7 +67,12 @@ void displayintro() {
 	printf("                           ───────────────────────                            \n");
 	printf("\n\n");
 }
-
+void clearcoordtable(coord table[], int index){
+	for (int i = 0; i <= index; i++) {
+		table[i].x = 0;
+		table[i].y = 0;
+	}
+}
 int abs(int x){
 	if (x <0 ){
 		x=-x;
@@ -77,7 +90,7 @@ int movesinge(pion * plateau[][10],coord movefrom,coord moveto, int isplaying){
 			//si déplacement de 2 alors
 			printf("Dep 2\n");
 			//test si coord = une case du carré 5x5 impossible a atteindre
-			if(!(abs(movefrom.x-moveto.x) == 2 && abs(movefrom.y-moveto.y)==1)  || (!(abs(movefrom.x-moveto.x) == 1 && abs(movefrom.y-moveto.y)==2))){
+			if(!(abs(movefrom.x-moveto.x) == 2 && abs(movefrom.y-moveto.y)==1) && (!(abs(movefrom.x-moveto.x) == 1 && abs(movefrom.y-moveto.y)==2))){
 				//calcul de la case "de passage"
 				coordcheck.x = movefrom.x+(moveto.x-movefrom.x)/2;
 				coordcheck.y = movefrom.y+(moveto.y-movefrom.y)/2;
@@ -317,7 +330,8 @@ int main(){
 	int brek = 0;
 	char * msg = "";
 	static struct termios oldt, newt;
-
+	coord movememory[100];
+	int countmemory = 0;
 	/*tcgetattr gets the parameters of the current terminal
 	STDIN_FILENO will tell tcgetattr that it should write the settings
 	of stdin to oldt*/
@@ -403,12 +417,18 @@ int main(){
 					}
 					if (g == 'n' && g == 'N') {
 						nextplayer(&isplaying);
+						clearcoordtable(movememory,countmemory);
+						countmemory = 0;
 						coordselect.x = -1;
 						coordselect.y = -1;
 						msg = " ";
 					}
 					else{
 						msg = " ";
+						movememory[countmemory] = focused;
+						countmemory++;
+						coordselect.x = -1;
+						coordselect.y = -1;
 					}
 				}
 				else if (!val) {
