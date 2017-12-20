@@ -7,7 +7,9 @@
 #include <string.h>
 /*
 A faire :
-- Vérifier que le déplacement n'est pas enregistré
+- Vérification saut portail
+- Sauvegarde des tours de joueur
+- Fin de partie
 */
 
 
@@ -49,7 +51,7 @@ void displayfooter(){
 void displayconf(){
 	printf("\nq : quitter sans sauvegarder |  w : sauvegarder et quitter | ! : annuler \n");
 }
-void displayintro() {
+void displayintro(int type) {
 	printf("------------------------------------------------------------------------------\n");
 	printf("  ____    _       _                     ____    _                             \n");
 	printf(" / ___|  | |__   (_)  _ __     __ _    / ___|  | |__     __ _   _ __     __ _ \n");
@@ -62,9 +64,16 @@ void displayintro() {
 	printf("                          DUVAL Lucas - MEURDRAC Téo                          \n");
 	printf("                       2017 - Université Caen Normandie                       \n");
 	printf("\n\n\n\n\n\n");
-	printf("              ──────────────────────────────────────────────                  \n");
-	printf("             Press Enter to Continue | Press W to load a game                 \n");
-	printf("              ──────────────────────────────────────────────                  \n");
+	if (type) {
+		printf("              ──────────────────────────────────────────────                  \n");
+		printf("             Press Enter to Continue | Press W to load a game                 \n");
+		printf("              ──────────────────────────────────────────────                  \n");
+	}
+	else{
+		printf("                         ─────────────────────────                            \n");
+		printf("                          Press Enter to Continue                             \n");
+		printf("                         ─────────────────────────                            \n");
+	}
 	printf("\n\n");
 }
 void clearcoordtable(coord table[], int index){
@@ -143,14 +152,60 @@ void save(pion * plateau[][10]){
 		}
 	}
 }
-void loadsave(pion * plateau[][10], pion * tcase){
+int loadsave(pion * plateau[][10], pion * tcase){
 	FILE * datafile;
-	char str[100];
+	char strget[100];
 	int inc = 0;
-/*
-	}access("save/data.tl", F_OK)*/
+	char path[1024];
+	int ret = 0;
+	getcwd(path,sizeof(path));
+	printf("%s\n",path);
+	if (access(strcat(path, "save/data.tl"), F_OK)) {
+		datafile = fopen("save/data.tl", "r");
+		fread(strget, 1, 100, datafile);
+		for (int i = 0; i < 10; i++) {
+			for (int j = 0; j < 10; j++) {
+				printf("%c", strget[inc]);
+				switch (strget[inc]) {
+					case 'A' :
+						plateau[j][i] = tcase+1;
+					break;
+					case 'B' :
+						plateau[j][i] = tcase+2;
+					break;
+					case 'C' :
+						plateau[j][i] = tcase+3;
+					break;
+					case 'D' :
+						plateau[j][i] = tcase+4;
+					break;
+					case 'E' :
+						plateau[j][i] = tcase+5;
+					break;
+					case 'F' :
+						plateau[j][i] = tcase+6;
+					break;
+					case 'G' :
+						plateau[j][i] = tcase+7;
+					break;
+					case 'H' :
+						plateau[j][i] = tcase+8;
+					break;
+					case 'M' :
+						plateau[j][i] = tcase;
+					break;
+					case 'V' :
+						plateau[j][i] = NULL;
+					break;
+				}
+				inc++;
+			}
+		}
+		ret++;
+	}
+	return ret;
 }
-int movesinge(pion * plateau[][10],coord movefrom,coord moveto, int isplaying){
+int movesinge(pion * plateau[][10],coord movefrom,coord moveto, int isplaying, int mustBeJump){
 	int val = 0;
 	coord coordcheck;
 	if(abs(movefrom.x-moveto.x) <=2 && abs(movefrom.y-moveto.y) <= 2){
@@ -164,7 +219,7 @@ int movesinge(pion * plateau[][10],coord movefrom,coord moveto, int isplaying){
 				//calcul de la case "de passage"
 				coordcheck.x = movefrom.x+(moveto.x-movefrom.x)/2;
 				coordcheck.y = movefrom.y+(moveto.y-movefrom.y)/2;
-				if(plateau[coordcheck.x][coordcheck.y] == NULL){
+				if(plateau[coordcheck.x][coordcheck.y] == NULL && mustBeJump==0){
 					plateau[moveto.x][moveto.y] = plateau[movefrom.x][movefrom.y];
 					plateau[movefrom.x][movefrom.y] = NULL;
 					val = 1; //return normal move value
@@ -186,7 +241,7 @@ int movesinge(pion * plateau[][10],coord movefrom,coord moveto, int isplaying){
 				}
 			}
 		}
-		else{
+		else if (mustBeJump==0){
 			//si déplacement de 1
 			printf("Dep 1\n");
 			if(plateau[moveto.x][moveto.y] == NULL){//test si occupé
@@ -199,19 +254,50 @@ int movesinge(pion * plateau[][10],coord movefrom,coord moveto, int isplaying){
 	printf("val = %d\n",val);
 	return val;
 }
-int movelion(pion * plateau[][10],coord movefrom,coord moveto, int isplaying){
+
+
+int movelion(pion * plateau[][10],coord movefrom,coord moveto, int isplaying, int mustBeJump){
 	int val = 0;
 	coord coordcheck;
-	if(abs(movefrom.x-moveto.x) <=1 && abs(movefrom.y-moveto.y) <= 1){
+	if(abs(movefrom.x-moveto.x) <=2 && abs(movefrom.y-moveto.y) <= 2){
 		printf("Working\n");
+		//test si déplacement de 1 ou de 2
+		if(abs(movefrom.x-moveto.x) == 2 || abs(movefrom.y-moveto.y) == 2){
+			//si déplacement de 2 alors
+			printf("Dep 2\n");
+			//test si coord = une case du carré 5x5 impossible a atteindre
+			if(!(abs(movefrom.x-moveto.x) == 2 && abs(movefrom.y-moveto.y)==1) && (!(abs(movefrom.x-moveto.x) == 1 && abs(movefrom.y-moveto.y)==2))){
+				//calcul de la case "de passage"
+				coordcheck.x = movefrom.x+(moveto.x-movefrom.x)/2;
+				coordcheck.y = movefrom.y+(moveto.y-movefrom.y)/2;
+					if(plateau[coordcheck.x][coordcheck.y]->team == isplaying && plateau[coordcheck.x][coordcheck.y]->type <= plateau[movefrom.x][movefrom.y]->type){
+						//if same team && type1>=type2
+						plateau[moveto.x][moveto.y] = plateau[movefrom.x][movefrom.y];
+						plateau[movefrom.x][movefrom.y] = NULL;
+						val = 2;
+					}
+					else if(plateau[coordcheck.x][coordcheck.y]->type <= plateau[movefrom.x][movefrom.y]->type){
+						//If ennemy team && type1>=type2
+						plateau[moveto.x][moveto.y] = plateau[movefrom.x][movefrom.y];
+						plateau[movefrom.x][movefrom.y] = NULL;
+						plateau[coordcheck.x][coordcheck.y] = NULL;
+						val = 2; //return jump value
+					}
+			}
+		}
+		else if (mustBeJump == 0){
+			//si déplacement de 1
+			printf("Dep 1\n");
 			if(plateau[moveto.x][moveto.y] == NULL){//test si occupé
 				plateau[moveto.x][moveto.y] = plateau[movefrom.x][movefrom.y];
 				plateau[movefrom.x][movefrom.y] = NULL;
 				val = 1;//return normal move value
 			}
 		}
+
 	printf("val = %d\n",val);
 	return val;
+}
 }
 
 int movedragon(pion * plateau[][10],coord movefrom,coord moveto, int isplaying){
@@ -247,15 +333,17 @@ int movedragon(pion * plateau[][10],coord movefrom,coord moveto, int isplaying){
 printf("val = %d\n",val);
 return val;
 }
+
+
 int requestmove(pion * plateau[][10],coord movefrom,coord moveto,int isplaying,int mustBeJump){
 	int val = 0;
 	switch (plateau[movefrom.x][movefrom.y]->type) {
 		case 1:
 		printf("Requested\n");
-		val = movesinge(plateau,movefrom,moveto,isplaying);
+		val = movesinge(plateau,movefrom,moveto,isplaying,mustBeJump);
 		break;
 		case 2:
-		val = movelion(plateau,movefrom,moveto,isplaying);
+		val = movelion(plateau,movefrom,moveto,isplaying,mustBeJump);
 		break;
 		case 3:
 		val = movedragon(plateau,movefrom,moveto,isplaying);
@@ -306,8 +394,8 @@ void affichageplateau(pion * plateau[][10],coord focused, coord selected,int isp
 		}
 		for (int j=0; j<10; j++){
 			if (plateau[j][i] != NULL) {
-				testtype=plateau[j][i]->type;
-				testteam=plateau[j][i]->team;
+				testtype = plateau[j][i]->type;
+				testteam = plateau[j][i]->team;
 			}
 			else{
 				testtype = 0;
@@ -447,7 +535,7 @@ int main(){
 	int g,val;
 	int isplaying = 1;
 	int brek = 0;
-	char * msg = "";
+	char * msg = " ";
 	static struct termios oldt, newt;
 	coord movememory[100];
 	int countmemory = 0;
@@ -471,23 +559,41 @@ int main(){
 	pion * plateau[10][10];
 	//Initialisation du tableau de tmsgype de cases
 	pion * tcase = (pion *) malloc(9*sizeof(coord)); // À EXPLIQUER
+	char path[1024];
+	getcwd(path,sizeof(path));
 	do {
 		clearboard();
-		displayintro();
-		g = getchar();
+		if (access(strcat(path, "save/data.tl"), F_OK)) {
+			displayintro(1);
+			g = getchar();
+			if (g != 'W' && g != 'w') {
+				val = 1;
+			}
+			else if (g != '\n') {
+				val = 1;
+			}
+		}
+		else{
+			displayintro(0);
+			g = getchar();
+			if (g != '\n') {
+				val = 1;
+			}
+		}
 	}
-	while(g != 'W' && g != 'w' && g != '\n');
-
+	while(val != 1);
 	if (g == 'W' || g == 'w') {
 		loadtcase(tcase);
-		loadsave(plateau,tcase);
+		if (!loadsave(plateau,tcase)) {
+			generetable(plateau,tcase);
+			msg = "        Partie introuvable ! Une nouvelle partie a été générée           ";
+		}
 	}
 	else if (g == '\n') {
 		loadtcase(tcase);
 		generetable(plateau,tcase);
 	}
 	clearboard();
-
 	coord coordselect;
 	coordselect.x = -1;
 	coordselect.y = -1;
@@ -496,7 +602,7 @@ int main(){
 	focused.x = 0;
 	focused.y = 0;
 
-	affichageplateau(plateau,focused,coordselect,isplaying,"");
+	affichageplateau(plateau,focused,coordselect,isplaying,msg);
 
 
 	while(brek != 1 && (g=getchar())){
@@ -533,6 +639,7 @@ int main(){
 				allowAllMove = 1;
 				for (int i = 0; i < countmemory; i++) {
 					if (movememory[i].x == coordselect.x && movememory[i].y == coordselect.y) {
+						printf("%d %d\n", movememory[i].x, movememory[i].y);
 							allowAllMove--;
 					}
 				}
@@ -546,17 +653,19 @@ int main(){
 
 				if (val == 1) {
 					nextplayer(&isplaying);
-					msg = "";
+					msg = " ";
 					coordselect.x = -1;
 					coordselect.y = -1;
 				}
 				else if(val == 2){
 					msg = "                Voulez-vous continuer a jouer ? (O/N)                    ";
 					while(g != 'o' && g != 'O' && g != 'n' && g != 'N'){
+						clearboard();
 						affichageplateau(plateau,focused,coordselect,isplaying,msg);
 						g = getchar();
 					}
-					if (g == 'n' && g == 'N') {
+					if (g == 'n' || g == 'N') {
+						printf("Non\n");
 						nextplayer(&isplaying);
 						clearcoordtable(movememory,countmemory);
 						countmemory = 0;
