@@ -205,12 +205,12 @@ void affichecase(int team, int type,int colored){
 	tabaff[1][1]="◇";
 	tabaff[1][2]="△";
 	tabaff[1][3]="○";
-	tabaff[1][4]="P";
+	tabaff[1][4]="П";
 
 	tabaff[2][1]="◆";
 	tabaff[2][2]="▲";
 	tabaff[2][3]="●";
-	tabaff[2][4]="P";
+	tabaff[2][4]="П";
 	switch (colored) {
 		case 2 :
 		printf("\x1b[31m%s\x1b[0m ",tabaff[team][type]);
