@@ -6,8 +6,6 @@
 /*
 A faire :
 - Vérifier que le déplacement n'est pas enregistré
-- Check déplacement horizontal bas, semble avoir un bug
-
 */
 
 
@@ -129,8 +127,6 @@ int movesinge(pion * plateau[][10],coord movefrom,coord moveto, int isplaying){
 	printf("val = %d\n",val);
 	return val;
 }
-
-
 int movelion(pion * plateau[][10],coord movefrom,coord moveto, int isplaying){
 	int val = 0;
 	coord coordcheck;
@@ -179,8 +175,7 @@ int movedragon(pion * plateau[][10],coord movefrom,coord moveto, int isplaying){
 printf("val = %d\n",val);
 return val;
 }
-
-int requestmove(pion * plateau[][10],coord movefrom,coord moveto,int isplaying){
+int requestmove(pion * plateau[][10],coord movefrom,coord moveto,int isplaying,int mustBeJump){
 	int val = 0;
 	switch (plateau[movefrom.x][movefrom.y]->type) {
 		case 1:
@@ -188,10 +183,10 @@ int requestmove(pion * plateau[][10],coord movefrom,coord moveto,int isplaying){
 		val = movesinge(plateau,movefrom,moveto,isplaying);
 		break;
 		case 2:
-		//val = movelion(plateau,movefrom,moveto,isplaying);
+		val = movelion(plateau,movefrom,moveto,isplaying);
 		break;
 		case 3:
-		//val = movedragon(plateau,movefrom,moveto,isplaying);
+		val = movedragon(plateau,movefrom,moveto,isplaying);
 		break;
 	}
 	return val;
@@ -383,6 +378,7 @@ int main(){
 	static struct termios oldt, newt;
 	coord movememory[100];
 	int countmemory = 0;
+	int allowAllMove = 0;
 	/*tcgetattr gets the parameters of the current terminal
 	STDIN_FILENO will tell tcgetattr that it should write the settings
 	of stdin to oldt*/
@@ -423,7 +419,7 @@ int main(){
 	affichageplateau(plateau,focused,coordselect,isplaying,"");
 
 
-	while((g=getchar()) && brek != 1){
+	while(brek != 1 && (g=getchar())){
 		clearboard();
 		if (g == '\033') {
 			if (getchar()) {
@@ -450,10 +446,24 @@ int main(){
 					break;
 				}
 			}
+			affichageplateau(plateau,focused,coordselect,isplaying,msg);
 		}
 		else if(g=='\n'){
 			if (coordselect.x != -1 && coordselect.y != -1 && (plateau[focused.x][focused.y] == NULL || plateau[focused.x][focused.y]->type == 4)) {
-				val = requestmove(plateau,coordselect,focused,isplaying);
+				allowAllMove = 1;
+				for (int i = 0; i < countmemory; i++) {
+					if (movememory[i].x == coordselect.x && movememory[i].y == coordselect.y) {
+							allowAllMove--;
+					}
+				}
+				if (allowAllMove) {
+					val = requestmove(plateau,coordselect,focused,isplaying,0);
+				}
+				else{
+					requestmove(plateau,coordselect,focused,isplaying,1);
+				}
+
+
 				if (val == 1) {
 					nextplayer(&isplaying);
 					msg = "";
@@ -484,6 +494,8 @@ int main(){
 				}
 				else if (!val) {
 					msg = "                          Déplacement impossible !                              ";
+					coordselect.x = -1;
+					coordselect.y = -1;
 				}
 			}
 			else{
@@ -507,9 +519,10 @@ int main(){
 					msg = "                 Vous ne pouvez pas sélectionner une case vide                  ";
 				}
 			}
+			affichageplateau(plateau,focused,coordselect,isplaying,msg);
 		}
-		affichageplateau(plateau,focused,coordselect,isplaying,msg);
-		if (g == '&') {
+		else if (g == '&') {
+			val = 1;
 			do {
 				if (g == 'w' || g == 'W') {
 					val = -1;
@@ -525,8 +538,10 @@ int main(){
 				clearboard();
 				displaylogo();
 				displayconf();
-			}
-			while (val != -1 && (g=getchar()));
+				if (g != 'w' && g != 'W' && g != 'q' && g != 'Q' && g != '!') {
+					g = getchar();
+				}
+			}while (val != -1);
 		}
 	}
 
