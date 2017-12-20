@@ -129,6 +129,57 @@ int movesinge(pion * plateau[][10],coord movefrom,coord moveto, int isplaying){
 	printf("val = %d\n",val);
 	return val;
 }
+
+
+int movelion(pion * plateau[][10],coord movefrom,coord moveto, int isplaying){
+	int val = 0;
+	coord coordcheck;
+	if(abs(movefrom.x-moveto.x) <=1 && abs(movefrom.y-moveto.y) <= 1){
+		printf("Working\n");
+			if(plateau[moveto.x][moveto.y] == NULL){//test si occupé
+				plateau[moveto.x][moveto.y] = plateau[movefrom.x][movefrom.y];
+				plateau[movefrom.x][movefrom.y] = NULL;
+				val = 1;//return normal move value
+			}
+		}
+	printf("val = %d\n",val);
+	return val;
+}
+
+int movedragon(pion * plateau[][10],coord movefrom,coord moveto, int isplaying){
+	int val = 0;
+	coord coordcheck;
+	if(abs(movefrom.x-moveto.x) <=2 && abs(movefrom.y-moveto.y) <= 2){
+		printf("Working\n");
+		//test si déplacement de 1 ou de 2
+		if(abs(movefrom.x-moveto.x) == 2 || abs(movefrom.y-moveto.y) == 2){
+			//si déplacement de 2 alors
+			printf("Dep 2\n");
+			//test si coord = une case du carré 5x5 impossible a atteindre
+			if(!(abs(movefrom.x-moveto.x) == 2 && abs(movefrom.y-moveto.y)==1) && (!(abs(movefrom.x-moveto.x) == 1 && abs(movefrom.y-moveto.y)==2))){
+				//calcul de la case "de passage"
+				coordcheck.x = movefrom.x+(moveto.x-movefrom.x)/2;
+				coordcheck.y = movefrom.y+(moveto.y-movefrom.y)/2;
+				if(plateau[coordcheck.x][coordcheck.y]->team == isplaying && plateau[coordcheck.x][coordcheck.y]->type <= plateau[movefrom.x][movefrom.y]->type){
+					//if same team && type1>=type2
+					plateau[moveto.x][moveto.y] = plateau[movefrom.x][movefrom.y];
+					plateau[movefrom.x][movefrom.y] = NULL;
+					val = 2;
+				}
+				else if(plateau[coordcheck.x][coordcheck.y]->type <= plateau[movefrom.x][movefrom.y]->type){
+					//If ennemy team && type1>=type2
+					plateau[moveto.x][moveto.y] = plateau[movefrom.x][movefrom.y];
+					plateau[movefrom.x][movefrom.y] = NULL;
+					plateau[coordcheck.x][coordcheck.y] = NULL;
+					val = 2; //return jump value
+				}
+			}
+		}
+	}
+printf("val = %d\n",val);
+return val;
+}
+
 int requestmove(pion * plateau[][10],coord movefrom,coord moveto,int isplaying){
 	int val = 0;
 	switch (plateau[movefrom.x][movefrom.y]->type) {
