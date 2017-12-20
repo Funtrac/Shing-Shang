@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <termios.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
-
+#include <string.h>
 /*
 A faire :
 - Vérifier que le déplacement n'est pas enregistré
@@ -60,9 +62,9 @@ void displayintro() {
 	printf("                          DUVAL Lucas - MEURDRAC Téo                          \n");
 	printf("                       2017 - Université Caen Normandie                       \n");
 	printf("\n\n\n\n\n\n");
-	printf("                           ───────────────────────                            \n");
-	printf("                           Press Enter to Continue                            \n");
-	printf("                           ───────────────────────                            \n");
+	printf("              ──────────────────────────────────────────────                  \n");
+	printf("             Press Enter to Continue | Press W to load a game                 \n");
+	printf("              ──────────────────────────────────────────────                  \n");
 	printf("\n\n");
 }
 void clearcoordtable(coord table[], int index){
@@ -77,7 +79,77 @@ int abs(int x){
 	}
 	return x;
 }
-
+void save(pion * plateau[][10]){
+	FILE * datafile;
+	char str[100];
+	int inc = 0;
+	if (mkdir("save", 0777)) {
+		datafile = fopen("save/data.tl", "w");
+		for (int i = 0; i < 10; i++) {
+			for (int j = 0; j < 10; j++) {
+				if (plateau[j][i] != NULL) {
+				switch (plateau[j][i]->team) {
+					case 1:
+						switch (plateau[j][i]->type) {
+							case 1:
+								str[inc] = 'A';
+							break;
+							case 2:
+								str[inc] = 'B';
+							break;
+							case 3:
+								str[inc] = 'C';
+							break;
+							case 4:
+								str[inc] = 'D';
+							break;
+						}
+					break;
+					case 2:
+						switch (plateau[j][i]->type) {
+							case 1:
+								str[inc] = 'E';
+							break;
+							case 2:
+								str[inc] = 'F';
+							break;
+							case 3:
+								str[inc] = 'G';
+							break;
+							case 4:
+								str[inc] = 'H';
+							break;
+						}
+					break;
+					default :
+								str[inc] = 'M';
+					break;
+				}
+			}
+			else{
+				str[inc] = 'V';
+			}
+				inc++;
+			}
+		}
+		fwrite(str, 1, strlen(str), datafile);
+	}
+	else{
+		char g;
+		printf("Impossible de sauvegarder la partie (CAN'T SAVE : FOLDER IS READ ONLY)\n");
+		while (g != '\n') {
+			printf("Appuyer sur Entrée pour quitter\n");
+			g = getchar();
+		}
+	}
+}
+void loadsave(pion * plateau[][10], pion * tcase){
+	FILE * datafile;
+	char str[100];
+	int inc = 0;
+/*
+	}access("save/data.tl", F_OK)*/
+}
 int movesinge(pion * plateau[][10],coord movefrom,coord moveto, int isplaying){
 	int val = 0;
 	coord coordcheck;
@@ -257,8 +329,7 @@ void affichageplateau(pion * plateau[][10],coord focused, coord selected,int isp
 	displayfooter();
 }
 
-
-void generetable(pion * plateau[][10], pion * tcase){
+void loadtcase(pion * tcase){
 	//Case Inaccessible
 	(tcase)->type = 1;
 	(tcase)->team = 0;
@@ -286,6 +357,8 @@ void generetable(pion * plateau[][10], pion * tcase){
 
 	(tcase+8)->type = 4;
 	(tcase+8)->team = 2;
+}
+void generetable(pion * plateau[][10], pion * tcase){
 	//Initialisation du tableau à la valeur NULL
 	for (int i = 0; i < 10; i++) {
 		for (int j = 0; j < 10; j++) {
@@ -394,19 +467,26 @@ int main(){
 	TCSANOW tells tcsetattr to change attributes immediately. */
 	tcsetattr( STDIN_FILENO, TCSANOW, &newt);
 
-	clearboard();
-	displayintro();
-
-	while (getchar()!= '\n') {
-		clearboard();
-		displayintro();
-	}
 	//Initialisation du tableau de pointeurs
 	pion * plateau[10][10];
 	//Initialisation du tableau de tmsgype de cases
 	pion * tcase = (pion *) malloc(9*sizeof(coord)); // À EXPLIQUER
+	do {
+		clearboard();
+		displayintro();
+		g = getchar();
+	}
+	while(g != 'W' && g != 'w' && g != '\n');
+
+	if (g == 'W' || g == 'w') {
+		loadtcase(tcase);
+		loadsave(plateau,tcase);
+	}
+	else if (g == '\n') {
+		loadtcase(tcase);
+		generetable(plateau,tcase);
+	}
 	clearboard();
-	generetable(plateau,tcase);
 
 	coord coordselect;
 	coordselect.x = -1;
@@ -543,12 +623,29 @@ int main(){
 				}
 			}while (val != -1);
 		}
+		if (g == 'w' && brek == 1) {
+			if (access("save/data.tl", F_OK)) {
+				do {
+					clearboard();
+					displaylogo();
+					printf("Il existe déjà une sauvegarde, l'écraser ? (O/N)\n");
+					g = getchar();
+					if (g == 'o' || g == 'O') {
+						save(plateau);
+					}
+				} while(g != 'o' && g != 'O' && g != 'n' && g != 'N');
+			}
+			else{
+				save(plateau);
+			}
+		}
 	}
 
 
 	/*restore the old settings*/
 	tcsetattr( STDIN_FILENO, TCSANOW, &oldt);
 	free(tcase);
+	clearboard();
 	clearboard();
 	return 1;
 }
