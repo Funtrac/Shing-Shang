@@ -285,10 +285,14 @@ int movelion(pion * plateau[][10],coord movefrom,coord moveto, int isplaying, in
 			//test si coord = une case du carré 5x5 impossible a atteindre
 			if(!(abs(movefrom.x-moveto.x) == 2 && abs(movefrom.y-moveto.y)==1) && (!(abs(movefrom.x-moveto.x) == 1 && abs(movefrom.y-moveto.y)==2))){
 				//calcul de la case "de passage"
+				printf("Working\n");
 				coordcheck.x = movefrom.x+(moveto.x-movefrom.x)/2;
 				coordcheck.y = movefrom.y+(moveto.y-movefrom.y)/2;
+				printf("Working\n");
+				if (plateau[coordcheck.x][coordcheck.y]!=NULL) {
 					if(plateau[coordcheck.x][coordcheck.y]->team == isplaying && plateau[coordcheck.x][coordcheck.y]->type <= plateau[movefrom.x][movefrom.y]->type){
 						//if same team && type1>=type2
+						printf("Working\n");
 						plateau[moveto.x][moveto.y] = plateau[movefrom.x][movefrom.y];
 						plateau[movefrom.x][movefrom.y] = NULL;
 						val = 2;
@@ -299,7 +303,9 @@ int movelion(pion * plateau[][10],coord movefrom,coord moveto, int isplaying, in
 						plateau[movefrom.x][movefrom.y] = NULL;
 						plateau[coordcheck.x][coordcheck.y] = NULL;
 						val = 2; //return jump value
+						printf("Working\n");
 					}
+				}
 			}
 		}
 		else if (mustBeJump == 0){
@@ -311,13 +317,12 @@ int movelion(pion * plateau[][10],coord movefrom,coord moveto, int isplaying, in
 				val = 1;//return normal move value
 			}
 		}
-
+	}
 	printf("val = %d\n",val);
 	return val;
 }
-}
 
-int movedragon(pion * plateau[][10],coord movefrom,coord moveto, int isplaying){
+int movedragon(pion * plateau[][10],coord movefrom,coord moveto, int isplaying, int cptdrag[]){
 	int val = 0;
 	coord coordcheck;
 	if(abs(movefrom.x-moveto.x) <=2 && abs(movefrom.y-moveto.y) <= 2){
@@ -331,28 +336,34 @@ int movedragon(pion * plateau[][10],coord movefrom,coord moveto, int isplaying){
 				//calcul de la case "de passage"
 				coordcheck.x = movefrom.x+(moveto.x-movefrom.x)/2;
 				coordcheck.y = movefrom.y+(moveto.y-movefrom.y)/2;
-				if(plateau[coordcheck.x][coordcheck.y]->team == isplaying && plateau[coordcheck.x][coordcheck.y]->type <= plateau[movefrom.x][movefrom.y]->type){
-					//if same team && type1>=type2
-					plateau[moveto.x][moveto.y] = plateau[movefrom.x][movefrom.y];
-					plateau[movefrom.x][movefrom.y] = NULL;
-					val = 2;
-				}
-				else if(plateau[coordcheck.x][coordcheck.y]->type <= plateau[movefrom.x][movefrom.y]->type){
-					//If ennemy team && type1>=type2
-					plateau[moveto.x][moveto.y] = plateau[movefrom.x][movefrom.y];
-					plateau[movefrom.x][movefrom.y] = NULL;
-					plateau[coordcheck.x][coordcheck.y] = NULL;
-					val = 2; //return jump value
+				if (plateau[coordcheck.x][coordcheck.y]!=NULL) {
+					if(plateau[coordcheck.x][coordcheck.y]->team == isplaying && plateau[coordcheck.x][coordcheck.y]->type <= plateau[movefrom.x][movefrom.y]->type){
+						//if same team && type1>=type2
+						plateau[moveto.x][moveto.y] = plateau[movefrom.x][movefrom.y];
+						plateau[movefrom.x][movefrom.y] = NULL;
+						val = 2;
+					}
+					else if(plateau[coordcheck.x][coordcheck.y]->type <= plateau[movefrom.x][movefrom.y]->type){
+						//If ennemy team && type1>=type2
+						if (plateau[coordcheck.x][coordcheck.y]->type == 3){
+							cptdrag[plateau[coordcheck.x][coordcheck.y]->team]-- ;
+						}
+						plateau[moveto.x][moveto.y] = plateau[movefrom.x][movefrom.y];
+						plateau[movefrom.x][movefrom.y] = NULL;
+						plateau[coordcheck.x][coordcheck.y] = NULL;
+						val = 2; //return jump value
+
+					}
 				}
 			}
 		}
 	}
-printf("val = %d\n",val);
-return val;
+	printf("val = %d\n",val);
+	return val;
 }
 
 
-int requestmove(pion * plateau[][10],coord movefrom,coord moveto,int isplaying,int mustBeJump){
+int requestmove(pion * plateau[][10],coord movefrom,coord moveto,int isplaying,int mustBeJump, int cptdrag[]){
 	int val = 0;
 	switch (plateau[movefrom.x][movefrom.y]->type) {
 		case 1:
@@ -363,11 +374,12 @@ int requestmove(pion * plateau[][10],coord movefrom,coord moveto,int isplaying,i
 		val = movelion(plateau,movefrom,moveto,isplaying,mustBeJump);
 		break;
 		case 3:
-		val = movedragon(plateau,movefrom,moveto,isplaying);
+		val = movedragon(plateau,movefrom,moveto,isplaying,cptdrag);
 		break;
 	}
 	return val;
 }
+
 void nextplayer(int * isp){
 	if (*isp==1)
 	*isp=2;
@@ -557,6 +569,9 @@ int main(){
 	coord movememory[100];
 	int countmemory = 0;
 	int allowAllMove = 0;
+	int cptdrag[2];
+	cptdrag[1]=2;
+	cptdrag[2]=2;
 	/*tcgetattr gets the parameters of the current terminal
 	STDIN_FILENO will tell tcgetattr that it should write the settings
 	of stdin to oldt*/
@@ -661,10 +676,10 @@ int main(){
 					}
 				}
 				if (allowAllMove) {
-					val = requestmove(plateau,coordselect,focused,isplaying,0);
+					val = requestmove(plateau,coordselect,focused,isplaying,0,cptdrag);
 				}
 				else{
-					val = requestmove(plateau,coordselect,focused,isplaying,1);
+					val = requestmove(plateau,coordselect,focused,isplaying,1,cptdrag);
 				}
 				
 				if (val == 1) {
